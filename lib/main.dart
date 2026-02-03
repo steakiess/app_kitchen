@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'pages/splash_page.dart';
 
 void main() {
-  runApp(const CozyRecipeApp());
+  runApp(const AiroRecipeApp());
 }
 
-class CozyRecipeApp extends StatelessWidget {
-  const CozyRecipeApp({Key? key}) : super(key: key);
+class AiroRecipeApp extends StatelessWidget {
+  const AiroRecipeApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Cozy GOGO Kitchen',
+      title: 'Airo Kitchen',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.orange,

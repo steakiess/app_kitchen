@@ -97,7 +97,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Cozy GOGO Kitchen',
+              'Airo Kitchen',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

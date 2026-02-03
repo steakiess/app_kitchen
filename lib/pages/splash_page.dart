@@ -58,7 +58,7 @@ class SplashPage extends StatelessWidget {
                 const SizedBox(height: 40),
             
                 const Text(
-                  'Cozy GOGO',
+                  'Airo Kitchen',
                   style: TextStyle(
                     fontSize: 48,
                     fontWeight: FontWeight.bold,
@@ -71,17 +71,6 @@ class SplashPage extends StatelessWidget {
                         offset: Offset(0, 4),
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Kitchen',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                    letterSpacing: 4,
-                    fontStyle: FontStyle.italic,
                   ),
                 ),
                 const SizedBox(height: 15),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../services/api_service.dart';
 import '../models/favorites_manager.dart';
 import '../utils/colors.dart';
@@ -16,14 +17,55 @@ class _SearchPageState extends State<SearchPage> {
   bool loading = false;
   bool searched = false;
   final TextEditingController controller = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_onSearchChanged);
+    controller.dispose();
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted) return; 
+      
+      if (controller.text.isNotEmpty) {
+        searchMeals(controller.text);
+      } else {
+
+        if (!mounted) return;
+        setState(() {
+          searchResults = [];
+          searched = false;
+          loading = false;
+        });
+      }
+    });
+  }
 
   Future<void> searchMeals(String query) async {
     if (query.isEmpty) return;
+    if (!mounted) return; 
+    
     setState(() {
       loading = true;
       searched = true;
     });
+    
     final results = await ApiService.searchMeals(query);
+    
+    if (!mounted) return; 
+    
     setState(() {
       searchResults = results;
       loading = false;
@@ -71,7 +113,7 @@ class _SearchPageState extends State<SearchPage> {
             child: TextField(
               controller: controller,
               decoration: InputDecoration(
-                hintText: 'Try "pasta" or "chicken"...',
+                hintText: 'Search... (Try "chic" or "pasta")',
                 hintStyle: const TextStyle(
                   color: AppColors.textSecondary,
                   fontStyle: FontStyle.italic,
@@ -80,13 +122,21 @@ class _SearchPageState extends State<SearchPage> {
                   Icons.restaurant_menu,
                   color: AppColors.primary,
                 ),
-                suffixIcon: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_forward,
-                    color: AppColors.primary,
-                  ),
-                  onPressed: () => searchMeals(controller.text),
-                ),
+                suffixIcon: controller.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.clear,
+                          color: AppColors.primary,
+                        ),
+                        onPressed: () {
+                          controller.clear();
+                          setState(() {
+                            searchResults = [];
+                            searched = false;
+                          });
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(18),
                   borderSide: BorderSide.none,
@@ -94,10 +144,31 @@ class _SearchPageState extends State<SearchPage> {
                 filled: true,
                 fillColor: AppColors.cardBackground,
               ),
-              onSubmitted: searchMeals,
             ),
           ),
           const SizedBox(height: 20),
+          if (searched && !loading && searchResults.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Found ${searchResults.length} recipe${searchResults.length > 1 ? 's' : ''}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Expanded(
             child: loading
                 ? const Center(
@@ -109,11 +180,13 @@ class _SearchPageState extends State<SearchPage> {
                     ? _buildEmptyState(
                         Icons.no_meals,
                         'No recipes found',
+                        'Try different keywords',
                       )
                     : !searched
                         ? _buildEmptyState(
                             Icons.flatware,
-                            'Search for delicious recipes',
+                            'Start typing to search',
+                            'Find your favorite recipes',
                           )
                         : ListView.builder(
                             itemCount: searchResults.length,
@@ -128,7 +201,7 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildEmptyState(IconData icon, String text) {
+  Widget _buildEmptyState(IconData icon, String text, String subtitle) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -145,6 +218,15 @@ class _SearchPageState extends State<SearchPage> {
               fontSize: 18,
               color: AppColors.textSecondary,
               fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary.withOpacity(0.7),
             ),
           ),
         ],
